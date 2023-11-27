@@ -1,210 +1,100 @@
-<!-- 
-
-
 <template>
   <div>
-    <h1>Send Notification</h1>
-    <button @click="handleButtonClick">Send Notification</button>
+    <h1>Firebase Messaging Demo</h1>
+    <div>
+      <strong>Device Token:</strong> {{ token }}
+    </div>
+    <div>
+      <strong>Received Message:</strong> {{ receivedMessage }}
+    </div>
+    <div>
+      <strong>Notifications:</strong> {{ notifications }}
+    </div>
+    <div>
+      <strong>Error:</strong> {{ error }}
+    </div>
   </div>
 </template>
 
 <script>
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-
 export default {
-  methods: {
-    async fetchNotificationDocument(documentId) {
-      const firebaseConfig = {
-        apiKey: "AIzaSyCevm8FXlUYNnwnhb0prG4YQup3mmpw0oo",
-  authDomain: "firestorenotify-18950.firebaseapp.com",
-  projectId: "firestorenotify-18950",
-  storageBucket: "firestorenotify-18950.appspot.com",
-  messagingSenderId: "25988846759",
-  appId: "1:25988846759:web:9fcd13c71d1ebace633782",
-  measurementId: "G-KK5WHM59DH"      
-};
-
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-
-      try {
-        const docRef = doc(db, 'notifications', documentId);
-        const docSnapshot = await getDoc(docRef);
-
-        if (docSnapshot.exists()) {
-          const notificationData = docSnapshot.data();
-          console.log('Fetched Notification Data:', notificationData); 
-          return notificationData;
-        } else {
-          console.log('No such document with ID:', documentId);
-          return null;
-        }
-      } catch (error) {
-        console.error('Error fetching document:', error);
-        return null;
-      }
-    },
-    async handleButtonClick() {
-      const documentId = 'uZbZg3aa1zDuxF6LydNR';
-      await this.fetchNotificationDocument(documentId);
-    },
+  data() {
+    return {
+      token: '',
+      receivedMessage: '',
+      notifications: '',
+      error: '',
+    };
   },
-};
-</script> -->
-
-
-<!-- <template>
-  <div>
-    <h1>Send Notification</h1>
-    <button @click="handleButtonClick">Send Notification</button>
-  </div>
-</template>
-
-<script>
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
-
-export default {
+  created() {
+    this.setupFirebase();
+    this.requestNotificationPermission();
+    this.listenForMessages();
+    this.fetchFirestoreData();
+  },
   methods: {
-    async fetchNotificationDocuments() {
+    setupFirebase() {
+      // TODO: Replace with your Firebase project's configuration
       const firebaseConfig = {
-        apiKey: "AIzaSyCevm8FXlUYNnwnhb0prG4YQup3mmpw0oo",
-        authDomain: "firestorenotify-18950.firebaseapp.com",
-        projectId: "firestorenotify-18950",
-        storageBucket: "firestorenotify-18950.appspot.com",
-        messagingSenderId: "25988846759",
-        appId: "1:25988846759:web:9fcd13c71d1ebace633782",
-        measurementId: "G-KK5WHM59DH"
+        apiKey: "<YOUR_API_KEY>",
+        authDomain: "<YOUR_AUTH_DOMAIN>",
+        projectId: "<YOUR_PROJECT_ID>",
+        messagingSenderId: "<YOUR_MESSAGING_SENDER_ID>",
+        appId: "<YOUR_APP_ID>",
+        measurementId: "<YOUR_MEASUREMENT_ID>",
       };
-
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-
-      try {
-        const notificationsRef = collection(db, 'notifications');
-        const querySnapshot = await getDocs(notificationsRef);
-
-        querySnapshot.forEach((doc) => {
-          const notificationData = doc.data();
-          console.log('Fetched Notification Data:', notificationData);
-        });
-
-        return querySnapshot.docs.map((doc) => doc.data());
-      } catch (error) {
-        console.error('Error fetching documents:', error);
-        return null;
+      firebase.initializeApp(firebaseConfig);
+      this.messaging = firebase.messaging();
+    },
+    requestNotificationPermission() {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission()
+          .then((permission) => {
+            if (permission === 'granted') {
+              return this.messaging.getToken({
+                vapidKey: "<YOUR_VAPID_KEY>",
+              });
+            }
+          })
+          .then((token) => {
+            this.token = token;
+          })
+          .catch((err) => {
+            this.error = `Unable to get permission to notify: ${err}`;
+          });
       }
     },
-    async handleButtonClick() {
-      await this.fetchNotificationDocuments();
-    },
-  },
-};
-</script> -->
-
-<!-- 
-<template>
-  <div>
-    <h1>Send Notification</h1>
-    <button @click="handleButtonClick">Send Notification</button>
-  </div>
-</template>
-
-<script>
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
-
-export default {
-  methods: {
-    async fetchNotificationDocuments() {
-      try {
-        const firebaseConfig = {
-          apiKey: "AIzaSyCevm8FXlUYNnwnhb0prG4YQup3mmpw0oo",
-        authDomain: "firestorenotify-18950.firebaseapp.com",
-        projectId: "firestorenotify-18950",
-        storageBucket: "firestorenotify-18950.appspot.com",
-        messagingSenderId: "25988846759",
-        appId: "1:25988846759:web:9fcd13c71d1ebace633782",
-        measurementId: "G-KK5WHM59DH"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const notificationsRef = collection(db, 'notifications');
-        const querySnapshot = await getDocs(notificationsRef);
-
-        querySnapshot.forEach((doc) => {
-          const notificationData = doc.data();
-          console.log('Fetched Notification Data:', notificationData);
-        });
-
-        return querySnapshot.docs.map((doc) => doc.data());
-      } catch (error) {
-        console.error('Error fetching documents:', error);
-        return null;
-      }
-    },
-    async handleButtonClick() {
-      await this.fetchNotificationDocuments();
-    },
-  },
-};
-</script> -->
-
-<template>
-  <div>
-    <h1>Send Notification</h1>
-    <button @click="handleButtonClick">Send Notification</button>
-  </div>
-</template>
-
-<script>
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-
-export default {
-  methods: {
-    async fetchNotificationDocument(documentId) {
-      try {
-        const firebaseConfig = {
-          apiKey: "AIzaSyCevm8FXlUYNnwnhb0prG4YQup3mmpw0oo",
-        authDomain: "firestorenotify-18950.firebaseapp.com",
-        projectId: "firestorenotify-18950",
-        storageBucket: "firestorenotify-18950.appspot.com",
-        messagingSenderId: "25988846759",
-        appId: "1:25988846759:web:9fcd13c71d1ebace633782",
-        measurementId: "G-KK5WHM59DH"
-              };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        if (!db) {
-          console.error('Firestore is not initialized properly');
-          return null;
+    listenForMessages() {
+      this.messaging.onMessage((payload) => {
+        this.receivedMessage = JSON.stringify(payload);
+        const enableForegroundNotification = true;
+        if (enableForegroundNotification) {
+          const notification = payload.notification;
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration()
+              .then((registration) => {
+                registration.showNotification(notification.title);
+              });
+          }
         }
-
-        const docRef = doc(db, 'notifications', documentId);
-        const docSnapshot = await getDoc(docRef);
-
-        if (!docSnapshot.exists()) {
-          console.error('Document does not exist:', documentId);
-          return null;
-        }
-
-        const notifications = docSnapshot.data();
-        console.log('Fetched Notification Data:', notifications);
-        return notifications;
-      } catch (error) {
-        console.error('Error fetching document:',error.message ||  error);
-        return null;
-      }
+      });
     },
-    async handleButtonClick() {
-      const documentId = 'uZbZg3aa1zDuxF6LydNR'; 
-      await this.fetchNotificationDocument(documentId);
+    fetchFirestoreData() {
+      const firebaseConfig = {/* Your Firebase config here */};
+      const app = firebase.initializeApp(firebaseConfig);
+      const firestore = app.firestore();
+      const usersCollection = firestore.collection('users');
+      usersCollection.get()
+        .then((querySnapshot) => {
+          const data = [];
+          querySnapshot.forEach((doc) => {
+            data.push({ id: doc.id, ...doc.data() });
+          });
+          this.notifications = JSON.stringify(data);
+        })
+        .catch((error) => {
+          this.error = `Error fetching documents: ${error}`;
+        });
     },
   },
 };
